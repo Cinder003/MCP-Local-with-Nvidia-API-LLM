@@ -1,0 +1,56 @@
+{
+    "server": {
+        "name": "Enhanced Comprehensive System Orchestration Server",
+        "system_wide_access": true,
+        "max_file_size": 104857600,
+        "allowed_extensions": [
+            ".txt",
+            ".md",
+            ".log",
+            ".ini",
+            ".cfg",
+            ".conf",
+            ".py",
+            ".js",
+            ".html",
+            ".css",
+            ".json",
+            ".xml",
+            ".yaml",
+            ".yml",
+            ".csv",
+            ".xlsx",
+            ".xls",
+            ".tsv",
+            ".docx",
+            ".doc",
+            ".rtf",
+            ".sql",
+            ".bat",
+            ".sh",
+            ".ps1"
+        ],
+        "restricted_paths": [
+            "C:\\Windows\\System32",
+            "C:\\Program Files",
+            "/bin",
+            "/sbin",
+            "/usr/bin",
+            "/usr/sbin",
+            "/etc",
+            "/var",
+            "/root"
+        ]
+    },
+    "logging": {
+        "level": "INFO"
+    },
+    "shell": {
+        "timeout": 30,
+        "max_output_lines": 1000
+    },
+    "file_operations": {
+        "default_encoding": "utf-8",
+        "max_lines_preview": 1000
+    }
+}
