@@ -1,0 +1,22 @@
+# Core framework
+fastmcp>=2.0.0
+
+# Client-side NVIDIA LLM integration
+langchain-nvidia-ai-endpoints>=0.1.0
+langchain-core>=0.2.0
+
+# Data and file handling
+pandas>=1.5.0
+openpyxl>=3.1.0
+python-docx>=0.8.11
+
+# System operations and utilities
+psutil>=5.9.0
+python-dotenv>=1.0.0
+
+# Optional: if using Jupyter/async utilities outside runtime, keep standard libs excluded
+# asyncio  # standard library, do not install
+# pathlib  # standard library, do not install
+# subprocess  # standard library, do not install
+# sqlite3  # standard library, do not install
+# typing  # standard library in modern Python
