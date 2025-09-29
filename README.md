@@ -1,11 +1,11 @@
 # MCP-Local-with-Nvidia-API-LLM
-FastMCP server for system orchestration: create/read files (TXT, CSV, XLSX, DOCX, JSON), manage folders, run shell commands, launch apps, list processes, and zip folders with safety guards; plus an NVIDIA LLM client that maps natural language to tool calls with resilient fallbacks and parameter extraction and file previews built-in.
+FastMCP server for system orchestration: create/read files (TXT, CSV, XLSX, DOCX, JSON), manage folders, run shell commands, launch apps, list processes, and zip folders with safety guards; plus an NVIDIA LLM client with intelligent query classifier mapping natural language to tool calls, resilient fallbacks, parameter extraction, and file previews built-in.
 
 # Enhanced FastMCP System Documentation
 
 ## Overview
 
-The Enhanced FastMCP System is a comprehensive, AI-powered file and system orchestration platform that combines the power of NVIDIA's language models with FastMCP's robust server-client architecture. This system provides natural language interfaces for complex file operations, system management, and data processing tasks.
+The Enhanced FastMCP System is a comprehensive, AI-powered file and system orchestration platform that combines the power of NVIDIA's language models with FastMCP's robust server-client architecture. This system provides natural language interfaces for complex file operations, system management, and data processing tasks with intelligent query classification.
 
 ## System Architecture
 
@@ -17,11 +17,11 @@ The Enhanced FastMCP System is a comprehensive, AI-powered file and system orche
    - System operations and process management
    - Configurable security and access controls
 
-2. **Ultra-Robust NVIDIA Client** (`complete_client.py`)
+2. **Ultra-Robust NVIDIA Client with Query Classifier** (`complete_client.py`)
+   - **Intelligent Query Classification**: Auto-routes queries as Knowledge, Action, or Hybrid
    - Natural language processing with NVIDIA AI models
-   - Advanced intent classification
-   - Multi-strategy command parsing
-   - Robust error handling and fallback mechanisms
+   - Advanced intent classification with triple-fallback parsing
+   - Multi-strategy command parsing with resilient error handling
 
 3. **Configuration System**
    - Server configuration (`server_config.json`)
@@ -30,6 +30,31 @@ The Enhanced FastMCP System is a comprehensive, AI-powered file and system orche
    - Runtime parameter adjustment
 
 ## Key Features
+
+### 🧠 Intelligent Query Classification System
+
+#### Query Categories
+- **Knowledge Queries**: Informational requests answered directly by LLM
+  - Examples: "What is machine learning?", "Explain Python programming"
+- **Action Queries**: System operations executed via MCP tools
+  - Examples: "Create file report.txt", "Run dir command", "Launch notepad"
+- **Hybrid Queries**: Combined knowledge + action responses
+  - Examples: "Explain ML and create demo.py", "What is file compression and zip my folder"
+
+#### Classification Workflow
+```python
+# Enhanced client flow with classification
+User Query → Query Classifier → Route Decision
+                     ↓
+    Knowledge ← [LLM Response] → Action → [MCP Execution]
+                     ↓
+                  Hybrid → [Both LLM + MCP]
+```
+
+#### Classification Methods
+1. **Primary**: LLM-based classification with prompt engineering
+2. **Secondary**: Pattern-based fallback classification
+3. **Tertiary**: Keyword scoring with confidence thresholds
 
 ### 🔧 Universal File Operations
 
@@ -73,7 +98,19 @@ search_files(pattern, directory=".", recursive=True)
 - Batch compression operations
 - Integrity verification
 
-### 🤖 Natural Language Interface
+### 🤖 Enhanced Natural Language Interface
+
+#### Query Classification Features
+```python
+# New client components
+_setup_query_classifier()      # LLM-based query routing
+_setup_knowledge_llm()         # Dedicated knowledge responses
+classify_query()               # Primary classification method
+knowledge_workflow()           # LLM-only workflow
+action_workflow()              # MCP-only workflow
+hybrid_workflow()              # Combined workflow
+process_query()                # Main routing entry point
+```
 
 #### NVIDIA AI Integration
 - **Supported Models**: Meta Llama 3.1, Mistral, CodeLlama, and more
@@ -81,18 +118,22 @@ search_files(pattern, directory=".", recursive=True)
 - **Context Awareness**: Working directory and session state management
 - **Fallback Strategies**: Multiple parsing approaches for robustness
 
-#### Intent Classification Patterns
+#### Enhanced Classification Patterns
 ```json
 {
-  "create_file": {
-    "keywords": ["create", "make", "new", "generate", "build"],
-    "objects": ["file", "document", "text", "excel", "word"],
-    "confidence_threshold": 3
-  },
-  "system_operations": {
-    "keywords": ["run", "execute", "launch", "start"],
-    "objects": ["command", "app", "program"],
-    "confidence_threshold": 2
+  "query_classification": {
+    "knowledge": {
+      "keywords": ["what", "how", "why", "explain", "tell me", "define"],
+      "confidence_threshold": 3
+    },
+    "action": {
+      "keywords": ["create", "make", "run", "execute", "launch", "show"],
+      "confidence_threshold": 3
+    },
+    "hybrid": {
+      "patterns": ["explain X and create Y", "tell me about X and make Y"],
+      "confidence_threshold": 5
+    }
   }
 }
 ```
@@ -105,257 +146,211 @@ search_files(pattern, directory=".", recursive=True)
 - Restricted directory protection
 - File size limitations
 
-#### Configurable Parameters
+#### Enhanced Configuration
 ```json
 {
   "server": {
     "max_file_size": 104857600,
     "system_wide_access": true,
-    "restricted_paths": ["C:\\Windows\\System32", "/bin", "/sbin"]
+    "restricted_paths": ["C:\Windows\System32", "/bin", "/sbin"]
   },
   "nvidia": {
     "model": "meta/llama-3.1-8b-instruct",
     "temperature": 0.1,
     "max_completion_tokens": 1000
+  },
+  "classification": {
+    "enable_query_classification": true,
+    "fallback_to_action": true,
+    "min_confidence_threshold": 3
   }
 }
 ```
 
 ## Usage Examples
 
-### Natural Language Commands
+### Enhanced Natural Language Commands
 
-#### File Creation
+#### Knowledge Queries (LLM Response Only)
 ```
-User: "I need a text file called notes.txt with some project ideas"
-System: Creates notes.txt with specified content
+User: "What is machine learning and how does it work?"
+Classification: Knowledge
+Response: Comprehensive LLM explanation about ML concepts, algorithms, applications
 
-User: "can you make an excel spreadsheet for my budget tracking"
-System: Creates budget.xlsx with sample headers and structure
-
-User: "create a python script named data_processor.py"
-System: Creates data_processor.py with basic Python template
-```
-
-#### System Operations
-```
-User: "show me all files in the Documents folder"
-System: Lists directory contents with file details
-
-User: "run a dir command to see current files"
-System: Executes shell command and displays results
-
-User: "open notepad please"
-System: Launches Notepad application
+User: "Explain the difference between Python and JavaScript"
+Classification: Knowledge
+Response: Detailed comparison of both programming languages
 ```
 
-#### Data Processing
+#### Action Queries (MCP Execution Only)
 ```
-User: "zip up my project folder into a backup archive"
-System: Creates compressed archive with proper structure
+User: "Create a text file called notes.txt with some project ideas"
+Classification: Action
+Response: File created via MCP server with specified content
 
-User: "convert this CSV data to Excel format"
-System: Processes and converts file format
+User: "Show me all files in the Documents folder"
+Classification: Action
+Response: Directory listing via MCP list_directory tool
 ```
+
+#### Hybrid Queries (Both LLM + MCP)
+```
+User: "Explain Python programming and create hello.py"
+Classification: Hybrid
+Response: 
+🧠 Knowledge Response: [Detailed Python explanation]
+⚡ Action Result: [hello.py file created successfully]
+
+User: "Tell me about data analysis and create sample.csv"
+Classification: Hybrid
+Response:
+🧠 Knowledge Response: [Data analysis concepts and methods]
+⚡ Action Result: [sample.csv created with headers]
+```
+
+## Enhanced Client Architecture Changes
+
+### New Query Processing Flow
+
+#### Before (Action-Only Client)
+```
+User Query → Action Parser → MCP Tool → Result
+```
+
+#### After (Classification-Enhanced Client)
+```
+User Query → Query Classifier → Branch Decision
+                    ↓
+Knowledge: LLM Response → Direct Answer
+Action: MCP Tools → Tool Execution Result  
+Hybrid: Both Workflows → Combined Response
+```
+
+### New Client Components
+
+#### 1. Query Classification System
+```python
+async def classify_query(self, user_input: str) -> str:
+    """Classify query into knowledge, action, or hybrid"""
+    # LLM-based classification with fallback
+    
+def _fallback_classification(self, user_input: str) -> str:
+    """Pattern-based classification backup"""
+    # Keyword scoring and confidence thresholds
+```
+
+#### 2. Workflow Routing
+```python
+async def knowledge_workflow(self, user_input: str) -> str:
+    """Handle pure knowledge queries with LLM"""
+    
+async def action_workflow(self, user_input: str) -> str:
+    """Handle action queries with MCP tools"""
+    
+async def hybrid_workflow(self, user_input: str) -> str:
+    """Handle queries needing both knowledge and actions"""
+```
+
+#### 3. Enhanced Configuration
+```python
+def _setup_query_classifier(self):
+    """Setup LLM-based query classification"""
+    
+def _setup_knowledge_llm(self):
+    """Setup dedicated knowledge response system"""
+```
+
+### Classification Accuracy Metrics
+
+#### Confidence Scoring
+- **High Confidence** (Score 5+): Direct routing
+- **Medium Confidence** (Score 3-4): Routing with validation
+- **Low Confidence** (Score <3): Fallback to pattern matching
+
+#### Fallback Strategy
+1. **Primary**: NVIDIA LLM classification
+2. **Secondary**: Pattern-based keyword matching
+3. **Tertiary**: Default to action workflow
 
 ## Technical Specifications
 
-### Dependencies
+### Enhanced Dependencies
 
-#### Server Dependencies
+#### Server Dependencies (Unchanged)
 ```python
 # Core Framework
 fastmcp>=1.0.0
-fastmcp.exceptions
-
-# File Processing
-openpyxl>=3.1.0
-python-docx>=0.8.11
-pandas>=1.5.0
-
-# System Operations
-psutil>=5.9.0
-pathlib
-subprocess
-sqlite3
-
-# Configuration
-python-dotenv>=1.0.0
+# [Previous dependencies remain the same]
 ```
 
-#### Client Dependencies
+#### Enhanced Client Dependencies
 ```python
-# NVIDIA AI Integration
+# NVIDIA AI Integration (Enhanced)
 langchain-nvidia-ai-endpoints>=0.1.0
 langchain-core>=0.2.0
 
 # FastMCP Client
 fastmcp>=1.0.0
 
-# Utilities
-python-dotenv>=1.0.0
+# New: Enhanced natural language processing
+# Additional utilities for classification
 asyncio
+re (for pattern matching)
+typing (for enhanced type hints)
 ```
 
 ### Performance Characteristics
 
-- **File Size Limit**: Configurable (default 100MB)
-- **Command Timeout**: Configurable (default 30 seconds)
-- **Parsing Strategies**: 3-tier fallback system
-- **Memory Usage**: Optimized for large file operations
-- **Response Time**: < 500ms for simple operations
+- **Classification Time**: < 200ms per query
+- **Knowledge Response**: 1-3 seconds (LLM dependent)
+- **Action Execution**: < 500ms for simple operations
+- **Hybrid Operations**: Combined timing of both workflows
+- **Fallback Activation**: < 50ms for pattern matching
 
-### Error Handling
+### Enhanced Error Handling
 
-#### Multi-Level Error Recovery
-1. **Primary**: NVIDIA AI natural language processing
-2. **Secondary**: Pattern-based intent classification
-3. **Tertiary**: Rule-based command parsing
-4. **Fallback**: Interactive clarification prompts
-
-#### Robust Exception Management
-- Network connectivity issues
-- API rate limiting
-- File system permissions
-- Invalid user input
-- Resource constraints
-
-## Deployment & Setup
-
-### Environment Configuration
-
-1. **NVIDIA API Setup**
-   ```bash
-   export NVIDIA_API_KEY="your_api_key_here"
-   ```
-
-2. **Working Directory**
-   ```bash
-   export WORKING_DIR="/path/to/workspace"
-   ```
-
-3. **Server Configuration**
-   ```bash
-   export SYSTEM_WIDE_ACCESS="true"
-   export MAX_FILE_SIZE="104857600"
-   export LOG_LEVEL="INFO"
-   ```
-
-### Installation Steps
-
-1. **Install Dependencies**
-   ```bash
-   pip install fastmcp langchain-nvidia-ai-endpoints openpyxl python-docx pandas psutil python-dotenv
-   ```
-
-2. **Configure Environment**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your NVIDIA API key
-   ```
-
-3. **Start Server**
-   ```bash
-   python complete_server.py
-   ```
-
-4. **Run Client**
-   ```bash
-   python complete_client.py
-   ```
+#### Four-Level Error Recovery
+1. **Primary**: NVIDIA AI query classification
+2. **Secondary**: NVIDIA AI action parsing  
+3. **Tertiary**: Pattern-based intent classification
+4. **Quaternary**: Rule-based command parsing with user clarification
 
 ## Advanced Configuration
 
-### Custom Intent Patterns
-
-Add new command patterns by extending the `intent_patterns` dictionary:
+### Classification Tuning
 
 ```python
-"custom_operation": {
-    "keywords": ["custom", "special", "unique"],
-    "objects": ["task", "operation", "process"],
-    "indicators": ["with", "using", "via"],
-    "confidence_threshold": 2
+# Adjust classification sensitivity
+"classification_config": {
+    "knowledge_keywords": ["what", "how", "why", "explain", "define", "tell me"],
+    "action_keywords": ["create", "make", "run", "execute", "launch", "show"],
+    "hybrid_patterns": ["explain.*and.*create", "tell.*about.*and.*make"],
+    "confidence_thresholds": {
+        "knowledge": 3,
+        "action": 3, 
+        "hybrid": 5
+    }
 }
 ```
 
-### Server Extensions
-
-Extend server capabilities by adding new tools:
+### Workflow Customization
 
 ```python
-@mcp.tool
-def custom_operation(param1: str, param2: int = 10) -> str:
-    """Custom operation with configurable parameters"""
-    # Implementation here
-    return "Operation completed successfully"
-```
-
-### Client Customization
-
-Modify parsing strategies by adjusting configuration:
-
-```json
-{
-  "parsing": {
-    "min_confidence_threshold": 3,
-    "enable_llm_fallback": true,
-    "enable_pattern_fallback": true,
-    "custom_patterns": ["pattern1", "pattern2"]
-  }
-}
-```
-
-## Best Practices
-
-### Security Considerations
-- Always validate user input paths
-- Implement proper access controls
-- Use environment variables for sensitive data
-- Regular security updates for dependencies
-
-### Performance Optimization
-- Configure appropriate file size limits
-- Use working directory contexts
-- Implement caching for frequently accessed files
-- Monitor system resource usage
-
-### Maintainability
-- Keep configuration files updated
-- Regular backup of important data
-- Document custom extensions
-- Version control for configuration changes
-
-## Troubleshooting
-
-### Common Issues
-
-1. **NVIDIA API Connection**
-   - Verify API key validity
-   - Check network connectivity
-   - Review rate limiting
-
-2. **File Permission Errors**
-   - Check directory permissions
-   - Verify restricted path settings
-   - Run with appropriate privileges
-
-3. **Parsing Failures**
-   - Review intent classification patterns
-   - Check minimum confidence thresholds
-   - Verify fallback mechanisms
-
-### Debug Mode
-
-Enable detailed logging for troubleshooting:
-
-```json
-{
-  "logging": {
-    "level": "DEBUG",
-    "file": "debug.log",
-    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-  }
+# Custom workflow behaviors
+"workflow_config": {
+    "knowledge_workflow": {
+        "max_response_length": 1000,
+        "include_examples": true,
+        "format_markdown": true
+    },
+    "action_workflow": {
+        "confirm_destructive_actions": true,
+        "show_execution_steps": true
+    },
+    "hybrid_workflow": {
+        "knowledge_first": true,
+        "combine_responses": true
+    }
 }
 ```
 
@@ -366,11 +361,12 @@ Enable detailed logging for troubleshooting:
 - **v1.2**: Enhanced configuration system and error handling
 - **v1.3**: Advanced intent classification and multi-strategy parsing
 - **v1.4**: Comprehensive file type support and system operations
+- **v1.5**: **NEW - Intelligent Query Classification System**
+  - Added query classifier for Knowledge/Action/Hybrid routing
+  - Implemented dedicated knowledge workflow with LLM responses
+  - Enhanced hybrid workflow combining both LLM knowledge and MCP actions
+  - Added classification confidence scoring and fallback mechanisms
 
-## License
+***
 
-This project is licensed under the MIT License. See LICENSE file for details.
-
----
-
-*This documentation covers the Enhanced FastMCP System - a powerful, AI-driven file and system orchestration platform combining natural language processing with robust system operations.*
+*This documentation covers the Enhanced FastMCP System with Intelligent Query Classification - a powerful, AI-driven platform that seamlessly combines natural language understanding with robust system operations through intelligent query routing.*
